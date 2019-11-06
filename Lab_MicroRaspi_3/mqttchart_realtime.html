@@ -1,14 +1,46 @@
 <html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Broker</title>
+<style>
+	.boxcon{
+		font-size: 5em;
+		box-shadow: 0 0 10px rgba(0,0,0,0.2);
+		padding: 20px;
+		border-radius: 20px;
+	}
+	.socket{
+		display: flex;
+		position: relative;
+		flex-flow: column;
+		justify-content: space-evenly;
+		align-items: center;
+		font-family: monospace;
+	}
+</style>
+<div class="socket" >
+		<h1>Massages :</h1>
+        <div id="a1"></div>
+        <div id="a2"></div>
+        <div id="a3"></div>
+		<div id="a4">&nbsp;</div>
+		<h1>Temperature :</h1>
+	<div class="container boxcon" id="info_1">Connect...</div>
+	<div id="a4">&nbsp;</div>
+	<h1>Distance :</h1>
+	<div class="container boxcon" id="info_2">Connect...</div>
+	<div id="a4">&nbsp;</div>
+	<h1>PIR :</h1>
+<div class="container boxcon" style="color : white" id="info_3">
+	Connect...</div>
+</div>
 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="mqttws31.js" type="text/javascript"></script>
 <script type="text/javascript">
 //settings BEGIN
-	var MQTTbroker = 'broker.mqttdashboard.com';
-	var MQTTport = 8000;
-	var MQTTsubTopic = 'test/60070084'; //works with wildcard # and + topics dynamically now
+	var MQTTbroker = '10.30.4.113';
+	var MQTTport = 9001;
+	var MQTTsubTopic = '60070074pub'; //works with wildcard # and + topics dynamically now
 //settings END
 
 	var chart; // global variuable for chart
@@ -28,7 +60,9 @@
 		onSuccess: function () {
 			console.log("mqtt connected");
 			// Connection succeeded; subscribe to our topics
-			client.subscribe(MQTTsubTopic, {qos: 1});
+			client.subscribe("60070074pub/temp", {qos: 1});
+			client.subscribe("60070074pub/dis", {qos: 0});
+			client.subscribe("60070074pub/pir", {qos: 2});
 		},
 		onFailure: function (message) {
 			console.log("Connection failed, ERROR: " + message.errorMessage);
@@ -45,6 +79,27 @@
 //what is done when a message arrives from the broker
 	function onMessageArrived(message) {
 		console.log(message.destinationName, '',message.payloadString);
+
+		var a = (message.destinationName, '',message.payloadString);
+        //Maikoawe
+        document.getElementById('a1').innerText = MQTTbroker;
+        document.getElementById('a2').innerText = MQTTport;
+        document.getElementById('a3').innerText = MQTTsubTopic;
+		if ( a != "Connect..."){
+			if ( message.destinationName == "60070074pub/temp"){
+				document.getElementById('info_1').style.backgroundColor = '#02b37b';
+				document.getElementById('info_1').innerText = a;
+			}
+			else if ( message.destinationName == "60070074pub/dis"){
+				document.getElementById('info_2').style.backgroundColor = 'red';
+				document.getElementById('info_2').innerText = a;
+			}
+			else if ( message.destinationName == "60070074pub/pir"){
+				document.getElementById('info_3').style.backgroundColor = 'blue';
+				document.getElementById('info_3').innerText = a;
+			}
+		}
+		
 
 		//check if it is a new topic, if not add it to the array
 		if (dataTopics.indexOf(message.destinationName) < 0){
@@ -160,6 +215,7 @@
 </head>
 <body onload="init();">
 
-<div data-highcharts-chart="0" id="container" style="height: 500px; min-width: 500px"></div>
+<div data-highcharts-chart="0" id="container" style="height: 500px; min-width: 500px; display:none;"></div>
 
-</body></html>
+</body>
+</html>
